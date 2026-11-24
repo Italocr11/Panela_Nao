@@ -1,80 +1,88 @@
-# Backend Node.js — Panela Não
+# Backend — Panela Não
 
-Usa apenas módulos nativos do Node.js: não é necessário instalar dependências.
+Servidor HTTP em Node.js que disponibiliza as páginas do frontend e uma API para sortear os times. Utiliza módulos nativos e não exige instalação de dependências.
 
-## Executar
+Cada partida é recebida e processada em JSON. O servidor não utiliza banco de dados nem mantém histórico. O cadastro e o resultado são armazenados pelo frontend no navegador.
 
-Na raiz do projeto:
+## Execução
+
+Na raiz do projeto, com Node.js instalado:
 
 ```powershell
 node Back/server.cjs
 ```
 
-Abra **http://127.0.0.1:8000**. Esse único processo entrega o frontend e atende `POST /api/sortear`. O modo API já está ativado em `Front/js/config.js`.
+Acesse **http://127.0.0.1:8000**. As páginas e a API são atendidas pelo mesmo processo. Para encerrá-lo, pressione **Ctrl+C** no terminal em que foi iniciado.
 
-O comando anterior `node Front/server.cjs` também funciona: ele inicia o mesmo backend, usando a porta 5500. Use um dos comandos; não precisa iniciar os dois.
+A API é utilizada quando `Front/js/config.js` está com `mode: "api"`. O site publicado no GitHub Pages executa o sorteio no navegador.
 
-Os arquivos `main.c` e `Main.py` foram mantidos como referência e não são executados pelo aplicativo.
+## Componentes
 
-## Correspondência com o código C
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `server.cjs` | Rotas HTTP, leitura do JSON, entrega das páginas, origens permitidas e respostas de erro. |
+| `sorteio.cjs` | Normalização dos dados, embaralhamento, busca de uma divisão válida e conferência das restrições. |
+| `tests/server.test.cjs` | Testes das rotas e do contrato HTTP. |
+| `tests/sorteio.test.cjs` | Testes das regras e do algoritmo. |
 
-| Código C | Implementação JavaScript | Motivo da mudança |
-| --- | --- | --- |
-| `recebe_nomes` com `scanf`/`fgets` | `recebeNomes`, em `sorteio.cjs`, recebe e valida o JSON da tela | O usuário já digita os nomes no navegador. |
-| `strcmp` entre nomes | Validação de IDs e nomes normalizados, compartilhada com o frontend | Bloqueia duplicatas como `João`, `JOÃO` e nomes com espaços extras. |
-| `Panela` com dois nomes | Array com dois IDs, como `["p1", "p2"]` | Identifica os jogadores sem depender da grafia dos nomes. |
-| `embaralha` | Mesmo Fisher–Yates, usando `crypto.randomInt` | Mantém a troca aleatória, sem precisar inicializar `srand`. Não altera a lista original. |
-| `confere`, citada mas ausente no trecho | `confere(times, panelas)` | Verifica se algum par proibido terminou no mesmo time. Retorna `true` quando há panela. |
-| Até 10.000 sorteios completos descartados | Busca com retrocesso, em `separaTimes` | Evita depender apenas de sorte para encontrar divisões com muitas restrições. |
-| `printf` do resultado | Resposta JSON para `times.html` | Permite que a tela apresente, copie e refaça o sorteio. |
-| `main` | Servidor HTTP em `server.cjs` | Recebe as requisições da tela e chama o sorteio com todos os argumentos. |
+As validações de entrada e resultado e a distribuição dos reservas são compartilhadas com `Front/js/core.js`.
 
-O C enviado também chama `separa_times(nomes, quantidade, jogadores_por_time)` com três argumentos, embora sua assinatura exija cinco, incluindo as panelas. Isso foi resolvido: a API recebe os jogadores, as panelas, a quantidade de times e os jogadores por time no mesmo objeto.
+## Regras
 
-## Regras adotadas
+- Até 100 jogadores por partida.
+- Nomes de até 49 unidades UTF-16 e identificadores de até 100 caracteres.
+- Identificadores e nomes normalizados não podem se repetir.
+- Entre 2 e 12 times, com 1 a 50 titulares por time; o padrão é de 5 titulares.
+- O total de jogadores deve preencher todas as vagas de titulares.
+- Cada jogador aparece uma única vez no resultado, como titular ou reserva.
+- As duplas proibidas não podem estar entre os titulares do mesmo time.
+- Uma pessoa pode participar de várias duplas; as restrições não são transitivas.
+- Duplas com jogadores desconhecidos, uma pessoa consigo mesma ou pares repetidos são rejeitadas.
 
-- Até **100 jogadores**, como `MAX_JOGADORES` no C.
-- Nomes de até **49 unidades UTF-16**, coerente com o limite de `maxlength` do HTML. O C tinha espaço para 49 bytes mais o terminador; strings JS não usam esse buffer fixo e aceitam nomes com acentos.
-- Entre **2 e 12 times**, seguindo o seletor do frontend. Deve haver pelo menos um jogador por time.
-- Cada time tem exatamente `jogadores_por_time` jogadores, com padrão 5 e opções inteiras de 1 a 50. É necessário cadastrar pelo menos `quantidade_times * jogadores_por_time` jogadores.
-- Cada jogador aparece exatamente uma vez, em um time ou na lista de reservas. Toda sobra vai para a reserva por sorteio. As restrições de panelas continuam valendo para os titulares; o vínculo do banco é apenas a distribuição dos reservas.
-- Uma pessoa pode participar de várias panelas. A–B e B–C não impedem A–C de jogar juntos.
-- Pares invertidos repetidos, jogadores desconhecidos e duplas da pessoa consigo mesma são rejeitados.
-- O sorteio não considera habilidade, posição ou histórico de partidas.
+Os excedentes são sorteados como reservas. Quando a quantidade pode ser dividida igualmente pelo número de times, cada time recebe o mesmo número de reservas. Caso contrário, todos permanecem na lista separada. As restrições de duplas não são aplicadas aos bancos.
 
-**Reserva:** o formulário permite escolher a quantidade de times e de jogadores por time (padrão 5). Com 11 jogadores, 2 times e 5 por time, o resultado é 5 contra 5 e 1 reserva. Com 17 jogadores nas mesmas configurações, são 7 reservas. O sorteio é refeito também para os reservas ao clicar em Sortear de novo.
+## Algoritmo
 
+1. Valida o cadastro, normaliza os nomes e monta as incompatibilidades.
+2. Embaralha os candidatos à reserva e seleciona uma combinação.
+3. Embaralha os titulares e prioriza quem possui mais restrições.
+4. Distribui os jogadores entre times com vaga e sem incompatibilidades.
+5. Quando uma escolha impede a continuação, desfaz a atribuição e tenta outro caminho.
+6. Se necessário, tenta outra combinação de reservas.
+7. Embaralha a ordem de apresentação, distribui os bancos quando possível e confere o resultado.
 
-Os reservas são vinculados aleatoriamente aos times somente quando a divisão é exata. Exemplo: 14 jogadores, 2 times e 5 titulares por time resultam em 2 reservas para cada time. Cada cartão mostra o banco abaixo dos titulares, com uma ilustração ao lado de Reservas. Se a quantidade não puder ser dividida igualmente (por exemplo, 3 reservas para 2 times), todos continuam no bloco separado de Reservas. A cópia inclui os bancos de cada time ou a lista separada.
+O embaralhamento utiliza Fisher–Yates com `crypto.randomInt`. A busca com retrocesso compartilha um limite de 250.000 passos ou aproximadamente 1,5 segundo por sorteio.
 
-## Como a busca funciona
+Esgotar os caminhos válidos indica uma divisão impossível para as restrições informadas. Atingir o limite indica uma interrupção, sem comprovar impossibilidade. O sorteio não considera habilidade, posição ou histórico, e não garante distribuição uniforme entre todas as composições válidas.
 
-1. Valida o cadastro e monta, para cada jogador, o conjunto de pessoas com quem não pode jogar.
-2. Usa o tamanho escolhido para todos os times e calcula a sobra como reservas. Embaralha os candidatos à reserva antes de priorizar as restrições.
-3. Escolhe uma combinação de reservas pela ordem embaralhada. Entre os demais, embaralha e prioriza quem possui mais restrições. Os empates permanecem aleatórios.
-4. Tenta colocar o próximo jogador em um time sorteado com vaga e sem incompatibilidades.
-5. Se não houver continuação possível, desfaz a última escolha e tenta outro caminho. Se necessário, tenta outras combinações de reservas. Isso é o **backtracking**. Todas as tentativas compartilham os mesmos limites de tempo e passos.
-6. Ao terminar, embaralha a ordem de exibição dentro dos times e confere novamente o resultado.
+## API de sorteio
 
-Há dois encerramentos diferentes: se todos os caminhos relevantes forem esgotados, a divisão é impossível sob essas regras; se o limite de 250.000 passos ou de 1,5 segundo for atingido, a busca foi interrompida e uma nova tentativa pode funcionar. A busca síncrona fica limitada para não prender indefinidamente o processo. A aleatoriedade não garante distribuição uniforme entre todas as composições válidas possíveis.
+### Requisição
 
-## Contrato da API
-
-`POST /api/sortear`, com `Content-Type: application/json`:
+`POST /api/sortear`, com `Content-Type: application/json`.
 
 ```json
 {
   "jogadores": [
-    { "id": "p1", "nome": "João" },
-    { "id": "p2", "nome": "Matheus" },
-    { "id": "p3", "nome": "Lucas" },
-    { "id": "p4", "nome": "Pedro" }
+    { "id": "p1", "nome": "Jogador 1" },
+    { "id": "p2", "nome": "Jogador 2" },
+    { "id": "p3", "nome": "Jogador 3" },
+    { "id": "p4", "nome": "Jogador 4" }
   ],
   "panelas": [["p1", "p2"]],
   "quantidade_times": 2,
   "jogadores_por_time": 2
 }
 ```
+
+| Campo | Descrição |
+| --- | --- |
+| `jogadores` | Identificador e nome de cada jogador. |
+| `panelas` | Pares de identificadores que devem ficar separados entre os titulares. |
+| `quantidade_times` | Número de times. |
+| `jogadores_por_time` | Titulares por time. Opcional; assume 5 quando omitido. |
+
+### Resposta
 
 Exemplo de resposta HTTP 200:
 
@@ -84,28 +92,16 @@ Exemplo de resposta HTTP 200:
     {
       "nome": "Time 1",
       "jogadores": [
-        {
-          "id": "p1",
-          "nome": "João"
-        },
-        {
-          "id": "p3",
-          "nome": "Lucas"
-        }
+        { "id": "p1", "nome": "Jogador 1" },
+        { "id": "p3", "nome": "Jogador 3" }
       ],
       "reservas": []
     },
     {
       "nome": "Time 2",
       "jogadores": [
-        {
-          "id": "p2",
-          "nome": "Matheus"
-        },
-        {
-          "id": "p4",
-          "nome": "Pedro"
-        }
+        { "id": "p2", "nome": "Jogador 2" },
+        { "id": "p4", "nome": "Jogador 4" }
       ],
       "reservas": []
     }
@@ -114,44 +110,57 @@ Exemplo de resposta HTTP 200:
 }
 ```
 
-Cada time inclui `reservas`. O campo `reservas` na raiz contém apenas a lista separada quando a sobra é indivisível; nas divisões exatas, fica vazio. As duas listas usam objetos `{ "id": "...", "nome": "..." }`. O campo de entrada `jogadores_por_time` é opcional na API e assume 5 quando omitido.
+`times[].jogadores` contém os titulares. `times[].reservas` contém o banco vinculado ao time quando a divisão é exata. O campo `reservas` na raiz contém a lista separada quando a divisão é desigual. Campos sem jogadores são devolvidos como arrays vazios.
 
-Erros usam `{"detail": "Mensagem para o usuário.", "codigo": "CODIGO_DO_ERRO"}`:
+### Erros
 
-| HTTP | Código | Significado |
+As respostas incluem uma mensagem em `detail` e, quando definido, um identificador em `codigo`.
+
+| HTTP | Código | Situação |
 | --- | --- | --- |
-| 400 | `DADOS_INVALIDOS` ou `JSON_INVALIDO` | Cadastro inconsistente ou JSON malformado. |
+| 400 | `DADOS_INVALIDOS` | Cadastro ou configurações inválidas. |
+| 400 | `JSON_INVALIDO` | Corpo não é um JSON válido. |
+| 403 | `ORIGEM_INVALIDA` | Origem não autorizada. |
 | 413 | `REQUISICAO_GRANDE` | Corpo maior que 512 KiB. |
 | 415 | `FORMATO_INVALIDO` | Conteúdo não enviado como JSON. |
-| 422 | `PANELAS_INCOMPATIVEIS` | Não existe divisão com os tamanhos e restrições informados, mesmo tentando outras reservas. |
-| 503 | `LIMITE_BUSCA` | A busca atingiu seu limite; não é uma prova de impossibilidade. |
+| 422 | `PANELAS_INCOMPATIVEIS` | Nenhuma divisão válida após esgotar a busca. |
+| 503 | `LIMITE_BUSCA` | Busca interrompida por limite de passos ou tempo. |
+| 500 | `ERRO_INTERNO` | Falha inesperada no processamento. |
 
-## Testar
+Rotas desconhecidas retornam 404. O endpoint de sorteio aceita `POST` e responde a `OPTIONS`; outros métodos recebem 405.
 
-Com Node.js 24 ou superior, na raiz:
+## Configuração
 
-```powershell
-node --test --test-isolation=none Front/tests/core.test.cjs Back/tests/sorteio.test.cjs Back/tests/server.test.cjs
-```
+### Porta
 
-Inclui testes do domínio, limites de jogadores/nomes, input preservado, panelas complexas, divisão impossível e limite de busca. Os testes HTTP iniciam um servidor real em uma porta livre e verificam respostas, contrato do frontend, CORS e requisições inválidas.
-
-## Porta e Live Server
-
-Para outra porta, no PowerShell:
+A variável `PORT` define a porta. O padrão é 8000, no endereço local `127.0.0.1`.
 
 ```powershell
 $env:PORT = "8001"
 node Back/server.cjs
 ```
 
-O endereço da API é relativo (`/api/sortear`), portanto acompanha a porta sem alterar o frontend.
+Quando frontend e API usam a mesma origem, o endereço relativo `/api/sortear` acompanha a porta configurada.
 
-Se optar pelo Live Server separado, configure `apiUrl` em `Front/js/config.js` como `http://127.0.0.1:8000/api/sortear`, e autorize a origem exata usada pelo Live Server:
+### Origens permitidas
+
+Para servir o frontend por outro servidor local, configure `apiUrl` em `Front/js/config.js` com o endereço completo da API e informe as origens permitidas em `CORS_ORIGINS`, separadas por vírgula:
 
 ```powershell
 $env:CORS_ORIGINS = "http://127.0.0.1:5500,http://localhost:5500"
 node Back/server.cjs
 ```
 
-No fluxo recomendado, com páginas e API no mesmo servidor, essa configuração é desnecessária. O servidor não usa banco de dados: a partida continua salva no navegador, e o JSON é processado somente para realizar o sorteio.
+### Limites HTTP
+
+O corpo é limitado a 512 KiB por requisição. O servidor configura 10 segundos para receber os cabeçalhos e 15 segundos para receber a requisição. Esses limites são distintos do prazo de execução do sorteio.
+
+## Testes
+
+Na raiz do projeto, com Node.js 24 ou superior:
+
+```powershell
+node --test --test-isolation=none Front/tests/core.test.cjs Back/tests/sorteio.test.cjs Back/tests/server.test.cjs
+```
+
+A suíte verifica regras, preservação das entradas, restrições, reservas, limites de busca, validações e respostas HTTP.
