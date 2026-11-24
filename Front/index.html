@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#294a1b">
+  <title>Panela Não — Monte sua partida</title>
+  <link rel="icon" href="assets/ball.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="js/config.js"></script>
+  <script defer src="js/core.js"></script>
+  <script defer src="js/storage.js"></script>
+  <script defer src="js/api.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Panela Não, início"><img src="assets/ball.svg" alt="" width="30" height="30"><span>PANELA <em>NÃO</em><span class="brand-dot">.</span></span></a>
+      <span class="header-note"><span class="status-dot"></span> AMIZADE FORA. DISPUTA EM CAMPO.</span>
+    </header>
+    <main id="main-content">
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow">MENOS CONVERSA, MAIS BOLA.</p><h1 id="page-title">Seu jogo.<br>Sem <span>panelinha.</span></h1><p class="intro-copy">Junte a galera, separe as panelas e deixe os times com a gente.</p></div>
+        <div class="pitch-mark" aria-hidden="true"><span class="pitch-center"></span><span class="pitch-goal left"></span><span class="pitch-goal right"></span><span class="pitch-ball">✦</span><span class="pitch-caption">A RESENHA É JUNTO.<br>O TIME, NEM SEMPRE.</span></div>
+      </section>
+      <nav class="steps" aria-label="Etapas da partida"><span class="step current" aria-current="step"><b>01</b> Organizar a partida</span><span class="step-line"></span><span class="step"><b>02</b> Times em campo</span></nav>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <div class="setup-grid">
+        <section class="panel players-panel" aria-labelledby="players-title">
+          <div class="panel-heading"><div class="panel-title"><span class="section-number">01 /</span><h2 id="players-title">Jogadores</h2></div><span class="count-badge" id="player-count">0 na lista</span></div>
+          <p class="panel-description">Quem vai pro jogo hoje?</p>
+          <form id="player-form" class="player-form">
+            <label class="sr-only" for="player-name">Nome do jogador</label>
+            <div class="input-action"><input id="player-name" name="player" maxlength="49" placeholder="Nome do jogador" autocomplete="off" required><button class="button button-lime add-button" type="submit"><span aria-hidden="true">+</span> Adicionar</button></div>
+            <p class="field-hint">Digite um nome e pressione Enter. Até 100 jogadores.</p>
+          </form>
+          <div class="list-heading"><span>ESCALAÇÃO</span><button class="text-button" id="load-example" type="button">Usar exemplo <span aria-hidden="true">↗</span></button></div>
+          <ul id="player-list" class="player-list" aria-label="Jogadores cadastrados"></ul>
+          <div id="players-empty" class="empty-state"><span class="empty-icon" aria-hidden="true">＋</span><h3>A lista está aberta.</h3><p>Adicione o primeiro nome<br>e convoque a galera.</p></div>
+          <div class="panel-bottom"><span class="tiny-ball" aria-hidden="true">●</span> Times completos. Quem sobrar vai para a reserva por sorteio.</div>
+        </section>
+        <section class="panel restrictions-panel" aria-labelledby="restrictions-title">
+          <div class="panel-heading"><div class="panel-title"><span class="section-number">02 /</span><h2 id="restrictions-title">Panelas</h2></div><span class="count-badge" id="restriction-count">0 duplas</span></div>
+          <p class="panel-description">Amigos demais? Coloque em lados diferentes.</p>
+          <form id="restriction-form">
+            <div class="pair-fields"><div><label for="player-one">JOGADOR 1</label><select id="player-one" required disabled><option value="">Selecione alguém</option></select></div><span class="pair-divider" aria-hidden="true">×</span><div><label for="player-two">JOGADOR 2</label><select id="player-two" required disabled><option value="">Selecione alguém</option></select></div></div>
+            <button class="button button-outline restriction-add" id="add-restriction" type="submit" disabled><span aria-hidden="true">+</span> Separar essa dupla</button>
+          </form>
+          <div class="list-heading"><span>DUPLAS QUE NÃO JOGAM JUNTAS</span><span class="optional-label">OPCIONAL</span></div>
+          <ul id="restriction-list" class="restriction-list" aria-label="Duplas em times diferentes"></ul>
+          <div id="restrictions-empty" class="empty-state"><span class="empty-icon split-icon" aria-hidden="true">↔</span><h3>Aqui a panela não passa.</h3><p>Escolha dois jogadores acima<br>para separá-los no sorteio.</p></div>
+          <div class="panel-bottom"><span class="mini-cross" aria-hidden="true">×</span> A dupla não joga no mesmo time. Reservas podem ficar juntos.</div>
+        </section>
+      </div>
+      <section class="match-bar" aria-label="Configuração do sorteio">
+        <div class="team-setting"><label for="team-count">QUANTIDADE DE TIMES</label><div class="stepper"><button id="decrease-teams" type="button" aria-label="Diminuir quantidade de times">−</button><input id="team-count" type="number" min="2" max="12" step="1" value="2" inputmode="numeric" aria-describedby="team-summary"><button id="increase-teams" type="button" aria-label="Aumentar quantidade de times">+</button></div></div>
+        <div class="team-setting"><label for="players-per-team">JOGADORES POR TIME</label><input id="players-per-team" class="team-size-input" type="number" min="1" max="50" step="1" value="5" inputmode="numeric" aria-describedby="team-summary"></div>
+        <p id="team-summary" class="team-summary">Adicione 10 jogadores para formar 2 times de 5.</p>
+        <button id="draw-teams" class="button button-lime draw-button" type="button">Separar os times <span aria-hidden="true">↗</span></button>
+      </section>
+      <p class="demo-note" id="mode-note">MODO DEMONSTRAÇÃO · Sorteio feito neste navegador.</p>
+    </main>
+    <footer class="site-footer"><span>PANELA NÃO<span class="brand-dot">.</span></span><p>A única panela permitida é a do churrasco.</p><span>FEITO PRA SUA PELADA <span aria-hidden="true">↗</span></span></footer>
+  </div>
+</body>
+</html>

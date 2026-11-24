@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#294a1b">
+  <title>Times em campo — Panela Não</title>
+  <link rel="icon" href="assets/ball.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="js/config.js"></script>
+  <script defer src="js/core.js"></script>
+  <script defer src="js/storage.js"></script>
+  <script defer src="js/api.js"></script>
+  <script defer src="js/times.js"></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header"><a class="brand" href="index.html" aria-label="Panela Não, início"><img src="assets/ball.svg" alt="" width="30" height="30"><span>PANELA <em>NÃO</em><span class="brand-dot">.</span></span></a><a class="header-link" href="index.html">← Editar jogadores</a></header>
+    <main id="main-content">
+      <section class="intro results-intro"><div><p class="eyebrow">RESENHA RESOLVIDA.</p><h1>Agora é<br><span>dentro de campo.</span></h1><p class="intro-copy">Times separados. A próxima decisão é no cara ou coroa.</p></div><div class="result-stamp" aria-hidden="true"><span>SEM</span><strong>PANELA</strong><span>SÓ FUTEBOL ↗</span></div></section>
+      <nav class="steps" aria-label="Etapas da partida"><a class="step completed" href="index.html"><b>✓</b> Organizar a partida</a><span class="step-line"></span><span class="step current" aria-current="step"><b>02</b> Times em campo</span></nav>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <div id="results-content" hidden>
+        <section class="result-summary" aria-label="Resumo do sorteio"><span><i class="status-dot"></i> PARTIDA ORGANIZADA</span><p id="result-stats"></p><span class="verified-label">✓ Panelas separadas</span></section>
+        <div id="teams-grid" class="teams-grid"></div>
+        <section class="result-actions" aria-label="Ações do sorteio"><a href="index.html" class="button button-outline">← Editar partida</a><div><button id="copy-teams" type="button" class="button button-outline">Copiar times <span aria-hidden="true">⧉</span></button><button id="redraw-teams" type="button" class="button button-lime">Sortear de novo <span aria-hidden="true">↻</span></button></div></section>
+      </div>
+      <section id="no-results" class="panel no-results" hidden><span class="empty-icon" aria-hidden="true">↗</span><h2>O jogo começa pela escalação.</h2><p>Cadastre os jogadores e separe os times para ver o resultado aqui.</p><a class="button button-lime" href="index.html">Organizar minha partida</a></section>
+      <p class="demo-note" id="mode-note"></p>
+    </main>
+    <footer class="site-footer"><span>PANELA NÃO<span class="brand-dot">.</span></span><p>A única panela permitida é a do churrasco.</p><span>FEITO PRA SUA PELADA <span aria-hidden="true">↗</span></span></footer>
+  </div>
+</body>
+</html>
