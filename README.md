@@ -16,6 +16,21 @@ São aceitos até 100 jogadores, entre 2 e 12 times e de 1 a 50 titulares por ti
 
 Os reservas são escolhidos aleatoriamente. Quando é possível dividi-los igualmente, cada time recebe seu próprio banco. Caso contrário, eles ficam em uma lista separada. O sorteio não considera habilidade ou posição.
 
+<br><br>
+<p align="center">
+  <img src="Front/assets/paneleiros.png" width="800" alt="Os Paneleiros">
+</p>
+<h1 align="center">Panela Não</h1>
+<br><br>
+
+
+
+
+
+
+
+
+
 ## Estrutura
 
 | Parte | Responsabilidade | Documentação |
