@@ -2,14 +2,19 @@
 
 Sorteio de times de futebol com duplas que não podem jogar juntas, quantidade de times e jogadores por time configuráveis e reservas sorteados.
 
-## Concluir a primeira publicação
+## Site publicado
 
-1. Envie para a raiz deste repositório as pastas **Front** e **Back** do projeto local, incluindo os arquivos de testes e a pasta **Front/assets**.
-2. Em **Settings > Pages > Build and deployment > Source**, selecione **GitHub Actions**.
-3. Acesse **Actions > Publicar Panela Nao no GitHub Pages** e execute **Run workflow**, na branch `main`. Novos envios de arquivos em `Front` ou `Back` também iniciam a publicação.
-4. Aguarde os trabalhos `build` e `deploy` terminarem com sucesso.
+Acesse **[Panela Não](https://italocr11.github.io/Panela_Nao/)** pelo computador ou pelo celular.
 
-Endereço esperado após a primeira publicação: **https://italocr11.github.io/Panela_Nao/**. O endereço ainda não funciona enquanto faltarem os arquivos e a configuração de Pages.
+A primeira publicação foi concluída pelo GitHub Pages. A verificação executou 36 testes com sucesso e conferiu a geração da versão para navegador.
+
+## Atualizar o site
+
+1. Envie suas alterações em `Front` ou `Back` para a branch `main`. Esses envios iniciam a publicação automaticamente.
+2. Para publicar manualmente, inclusive depois de alterar o script de preparo ou o workflow, acesse **Actions > Publicar Panela Nao no GitHub Pages > Run workflow**, na branch `main`.
+3. Aguarde os trabalhos `build` e `deploy` terminarem com sucesso. As execuções estão em [GitHub Actions](https://github.com/Italocr11/Panela_Nao/actions).
+
+A origem de publicação em **Settings > Pages** deve permanecer como **GitHub Actions**.
 
 ## Como a versão online funciona
 
